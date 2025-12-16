@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifikasi Imigrasi - Pembukaan Penangguhan Paspor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        /* --- General Styles & Resets --- */
+        :root {
+            --primary-color: #003d7a;
+            --secondary-color: #0056b3;
+            --accent-color: #ffc107;
+            --danger-color: #d9534f;
+            --light-bg: #f4f7f6;
+            --white: #ffffff;
+            --text-color: #333333;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            margin: 20px auto;
+            padding: 0 15px;
+            flex-grow: 1;
+        }
+
+        /* --- Header & Logo --- */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            width: 120px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .institution-name {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        /* --- Notification Card --- */
+        .notification-card {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 25px;
+            text-align: center;
+        }
+
+        .notification-card h1 {
+            font-size: 1.5em;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .notification-card p {
+            font-size: 1em;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .notification-card strong {
+            color: var(--primary-color);
+        }
+
+        /* --- Button Styles --- */
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            margin-top: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            text-decoration: none;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary-color);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* Loading Spinner */
+        .btn.loading {
+            color: transparent;
+            pointer-events: none;
+            position: relative;
+        }
+
+        .btn.loading::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            margin-left: -10px;
+            margin-top: -10px;
+            border: 2px solid var(--white);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spinner 0.8s linear infinite;
+        }
+
+        @keyframes spinner {
+            to { transform: rotate(360deg); }
+        }
+
+        /* --- Modal (Popup) Styles --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding-top: 50px;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            position: relative;
+            animation: slideIn 0.4s;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: var(--text-color);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .data-section, .payment-details {
+            background-color: var(--light-bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .data-section p, .payment-details p {
+            margin: 5px 0;
+        }
+
+        .payment-details strong {
+            font-size: 1.2em;
+        }
+
+        .copy-code-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--white);
+            border: 1px solid #ccc;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        #paymentCode {
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        #copyBtn {
+            background: none;
+            border: none;
+            color: var(--secondary-color);
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+
+        #countdown-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        #countdown {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--danger-color);
+        }
+
+        .note {
+            text-align: center;
+            font-style: italic;
+            color: #666;
+            margin-top: 15px;
+        }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9em;
+            color: #777;
+            margin-top: auto;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <img src="https://z-cdn-media.chatglm.cn/files/e3949990-7af5-4de4-9476-47fceda71b8a.png?auth_key=1865889565-39f38f3b140043b0bdca5c3180e7e1af-0-c78525d12afb1fce3e05a7e023db8833" alt="Logo Ditjen Imigrasi" class="logo">
+            <p class="institution-name">Kantor Imigrasi Kelas I Non TPI Pemalang</p>
+        </div>
+
+        <div class="notification-card">
+            <h1>Pemberitahuan Penting</h1>
+            <p>
+                Dengan hormat, kepada <strong>ZAENUR ABIDIN</strong> (NIK: 3302053006850002) atas pengajuan paspor hilang dengan nomor <strong>C5876301</strong>.
+            </p>
+            <p>
+                Saat ini, pengajuan Anda memiliki status <strong>pending verifikasi data</strong>. Hal ini dikarenakan data paspor tersebut ditangguhkan sejak tanggal <strong>5 Juli 2015</strong>.
+            </p>
+            <p>
+                Untuk melanjutkan proses, Anda diwajibkan untuk melakukan verifikasi beban guna membuka penangguhan tersebut. Kebijakan ini diterapkan demi keamanan data, sesuai dengan undang-undang yang telah diatur oleh Kementerian Hukum dan Hak Asasi Manusia serta Kantor Keimigrasian.
+            </p>
+            <button id="resolveBtn" class="btn btn-primary">Selesaikan</button>
+        </div>
+    </div>
+
+    <!-- The Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Pembukaan Penangguhan</h2>
+            
+            <div class="data-section">
+                <p><strong>Nama:</strong> ZAENUR ABIDIN</p>
+                <p><strong>NIK:</strong> 3302053006850002</p>
+                <p><strong>No. Paspor Hilang:</strong> C5876301</p>
+            </div>
+
+            <div class="payment-details">
+                <p><strong>Jumlah Pembayaran:</strong> Rp 503.500,00</p>
+                <p><strong>Kode Pembayaran:</strong></p>
+                <div class="copy-code-container">
+                    <span id="paymentCode">910266000001537621</span>
+                    <button id="copyBtn" title="Salin Kode"><i class="fas fa-copy"></i></button>
+                </div>
+            </div>
+
+            <div id="countdown-container">
+                <p>Batas Waktu Pembayaran:</p>
+                <div id="countdown">--:--:--</div>
+            </div>
+
+            <p class="note">Pastikan pembayaran Anda dilakukan tepat waktu untuk menghindari penundaan proses lebih lanjut.</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2023 Direktorat Jenderal Imigrasi - Kementerian Hukum dan HAM. Seluruh hak cipta dilindungi.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const resolveBtn = document.getElementById('resolveBtn');
+            const modal = document.getElementById('paymentModal');
+            const closeBtn = document.querySelector('.close-btn');
+            const copyBtn = document.getElementById('copyBtn');
+            const paymentCodeEl = document.getElementById('paymentCode');
+            const countdownEl = document.getElementById('countdown');
+
+            // --- Modal and Button Logic ---
+            resolveBtn.addEventListener('click', function() {
+                // Add loading class to button
+                this.classList.add('loading');
+
+                // Simulate a network request or processing time
+                setTimeout(() => {
+                    // Remove loading class
+                    this.classList.remove('loading');
+                    
+                    // Show the modal
+                    modal.style.display = 'block';
+                    
+                    // Start the countdown when modal is first opened
+                    startCountdown();
+                }, 2000); // 2-second delay
+            });
+
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+
+            window.addEventListener('click', function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+
+            // --- Copy to Clipboard Logic ---
+            copyBtn.addEventListener('click', function() {
+                const paymentCode = paymentCodeEl.innerText;
+                navigator.clipboard.writeText(paymentCode).then(() => {
+                    const originalIcon = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-check"></i>';
+                    setTimeout(() => {
+                        this.innerHTML = originalIcon;
+                    }, 2000); // Revert icon after 2 seconds
+                }).catch(err => {
+                    console.error('Gagal menyalin teks: ', err);
+                    alert('Gagal menyalin kode. Silakan salin secara manual.');
+                });
+            });
+
+            // --- Countdown Timer Logic ---
+            const countdownDuration = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+            const deadlineKey = 'paymentDeadline';
+
+            function startCountdown() {
+                // Check if a deadline is already set in localStorage
+                let storedDeadline = localStorage.getItem(deadlineKey);
+                let deadlineTime;
+
+                if (!storedDeadline) {
+                    // If not, set a new deadline from now
+                    deadlineTime = new Date().getTime() + countdownDuration;
+                    localStorage.setItem(deadlineKey, deadlineTime);
+                } else {
+                    // If it exists, use the stored deadline
+                    deadlineTime = parseInt(storedDeadline, 10);
+                }
+                
+                // Update the countdown every second
+                const countdownInterval = setInterval(() => {
+                    const now = new Date().getTime();
+                    const remainingTime = deadlineTime - now;
+
+                    if (remainingTime <= 0) {
+                        clearInterval(countdownInterval);
+                        countdownEl.innerHTML = "Waktu Habis";
+                        localStorage.removeItem(deadlineKey); // Clear deadline after it expires
+                        // Optionally disable the copy button or take other action
+                        copyBtn.disabled = true;
+                        copyBtn.style.opacity = '0.5';
+                        copyBtn.style.cursor = 'not-allowed';
+                        return;
+                    }
+
+                    const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+
+                    countdownEl.innerHTML = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>
